@@ -1,6 +1,5 @@
 package com.xrontech.web.domain.department;
 
-import com.xrontech.web.domain.job.JobRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

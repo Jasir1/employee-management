@@ -6,6 +6,7 @@ import com.xrontech.web.domain.security.dto.ResetForgotPasswordDTO;
 import com.xrontech.web.domain.security.service.AuthService;
 import com.xrontech.web.domain.user.ResetPasswordDTO;
 import com.xrontech.web.dto.ApplicationResponseDTO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@SecurityRequirement(name = "ems")
 @RequestMapping(value = "/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthResource {
     private final AuthService authService;
@@ -44,5 +46,9 @@ public class AuthResource {
     @PostMapping("/reset-password/{id}")
     public ResponseEntity<ApplicationResponseDTO> resetForgotPassword(@PathVariable("id") Long id,@Valid @RequestBody ResetForgotPasswordDTO resetForgotPasswordDTO){
         return ResponseEntity.ok(authService.resetForgotPassword(id,resetForgotPasswordDTO));
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApplicationResponseDTO> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO){
+        return ResponseEntity.ok(authService.resetPassword(resetPasswordDTO));
     }
 }

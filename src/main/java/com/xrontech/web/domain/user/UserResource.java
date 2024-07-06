@@ -1,20 +1,24 @@
 package com.xrontech.web.domain.user;
 
+import com.xrontech.web.domain.employee.EmployeeDTO;
+import com.xrontech.web.domain.security.entity.User;
 import com.xrontech.web.domain.security.service.AuthService;
 import com.xrontech.web.dto.ApplicationResponseDTO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/user")
+@SecurityRequirement(name = "ems")
 public class UserResource {
     private final UserService userService;
-    private final AuthService authService;
 
     @PutMapping("/update")
     public ResponseEntity<ApplicationResponseDTO> updateUser(@Valid @RequestBody UserUpdateDTO userUpdateDTO) {
@@ -24,8 +28,8 @@ public class UserResource {
     public ResponseEntity<ApplicationResponseDTO> updateProfilePic(@RequestBody MultipartFile file) {
         return ResponseEntity.ok(userService.updateProfilePic(file));
     }
-    @PutMapping("/reset-password")
-    public ResponseEntity<ApplicationResponseDTO> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
-        return ResponseEntity.ok(authService.resetPassword(resetPasswordDTO));
+    @GetMapping("/get")
+    public ResponseEntity<User> getProfile() {
+        return ResponseEntity.ok(userService.getProfile());
     }
 }

@@ -1,31 +1,41 @@
-package com.xrontech.web.domain.admin;
+package com.xrontech.web.domain.employee;
 
-import com.xrontech.web.EmployeeManagementApplication;
-import com.xrontech.web.domain.employee.EmployeeDTO;
+import com.xrontech.web.domain.security.domain.UserData;
 import com.xrontech.web.domain.security.entity.User;
 import com.xrontech.web.domain.security.entity.UserRole;
 import com.xrontech.web.domain.security.repos.UserRepository;
+import com.xrontech.web.domain.user.UserUpdateDTO;
 import com.xrontech.web.dto.ApplicationResponseDTO;
 import com.xrontech.web.exception.ApplicationCustomException;
 import com.xrontech.web.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
-public class AdminService {
+public class EmployeeService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder();
+
 
     public ApplicationResponseDTO createUser(EmployeeDTO employeeDTO) {
         if (userRepository.findByUsername(employeeDTO.getUsername()).isPresent()) {
@@ -41,7 +51,7 @@ public class AdminService {
                             .username(employeeDTO.getUsername())
                             .mobile(employeeDTO.getMobile())
                             .password(passwordEncoder.encode(generatePassword))
-                            .status(true)
+                            .active(true)
                             .delete(false)
                             .userRole(UserRole.USER)
                             .build()
@@ -81,4 +91,5 @@ public class AdminService {
         secureRandom.nextBytes(randomBytes);
         return base64Encoder.encodeToString(randomBytes);
     }
+
 }

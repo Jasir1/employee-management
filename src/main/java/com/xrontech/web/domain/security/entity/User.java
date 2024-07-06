@@ -56,10 +56,10 @@ public class User extends BaseEntity {
     private UserRole userRole = UserRole.USER;
 
     @Column(name = "status", nullable = false)
-    private Boolean status = true;
+    private boolean active = true;
 
     @Column(name = "delete", nullable = false)
-    private Boolean delete = false;
+    private boolean delete = false;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

@@ -1,18 +1,18 @@
 package com.xrontech.web.domain.department;
 
 import com.xrontech.web.dto.ApplicationResponseDTO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/department")
+@SecurityRequirement(name = "ems")
 public class DepartmentResource {
     private final DepartmentService departmentService;
 
@@ -26,12 +26,12 @@ public class DepartmentResource {
         return ResponseEntity.ok(departmentService.getAllDepartments());
     }
 
-    @GetMapping("/get-by-id/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<Department> getDepartmentById(@PathVariable("id") Long id){
         return ResponseEntity.ok(departmentService.getDepartmentById(id));
     }
 
-    @GetMapping("/get-by-name/{name}")
+    @GetMapping("/get/name/{name}")
     public ResponseEntity<Department> getDepartmentByName(@PathVariable("name") String name){
         return ResponseEntity.ok(departmentService.getDepartmentByName(name));
     }

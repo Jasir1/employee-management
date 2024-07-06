@@ -15,7 +15,6 @@ public class UserMapper {
         userData.setPassword(user.getPassword());
 
         SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority("ROLE_" + user.getUserRole());
-//        SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(String.valueOf(user.getUserRole()));
 
         userData.setAuthorities(List.of(grantedAuthority));
         return userData;

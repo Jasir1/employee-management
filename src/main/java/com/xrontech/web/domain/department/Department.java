@@ -3,8 +3,6 @@ package com.xrontech.web.domain.department;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

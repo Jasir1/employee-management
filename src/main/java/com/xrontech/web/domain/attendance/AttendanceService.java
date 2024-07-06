@@ -1,9 +1,6 @@
 package com.xrontech.web.domain.attendance;
 
-import com.xrontech.web.EmployeeManagementApplication;
 import com.xrontech.web.domain.security.entity.User;
-import com.xrontech.web.domain.security.repos.UserRepository;
-import com.xrontech.web.domain.security.service.AuthService;
 import com.xrontech.web.domain.user.UserService;
 import com.xrontech.web.dto.ApplicationResponseDTO;
 import com.xrontech.web.exception.ApplicationCustomException;
@@ -21,74 +18,96 @@ import java.util.Optional;
 public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final UserService userService;
-    private final UserRepository userRepository;
 
-    public ApplicationResponseDTO addAttendance() {
+    public ApplicationResponseDTO checkIn() {
 
-        String username = AuthService.getCurrentUser();
-        User user = userService.findByUsername(username);
-
-        if (attendanceRepository.findByDate(LocalDate.now()).isEmpty()){
-            throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_ALREADY_MARKED", "Attendance already marked");
+        if (isCheckIn()) {
+            throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_ALREADY_CHECKED_IN", "Attendance already checked in!");
         }
+
+        User user = userService.findByUsername(userService.getCurrentUser().getUsername());
 
         attendanceRepository.save(
                 new Attendance.AttendanceBuilder()
                         .employeeId(user.getId())
                         .checkIn(LocalTime.now())
+                        .date(LocalDate.now())
                         .build()
         );
         return new ApplicationResponseDTO(HttpStatus.CREATED, "ATTENDANCE_MARKED_SUCCESSFULLY", "Attendance marked successfully");
+
     }
 
+    public Boolean isCheckIn() {
+        User user = userService.findByUsername(userService.getCurrentUser().getUsername());
+        return attendanceRepository.findByDate(LocalDate.now()).map(attendance -> attendance.getEmployeeId().equals(user.getId()) && attendance.getCheckOut() == null).orElse(false);
+    }
+
+    public ApplicationResponseDTO checkOut() {
+        if (isCheckIn()) {
+            Optional<Attendance> optionalAttendance = attendanceRepository.findByDate(LocalDate.now());
+            if (optionalAttendance.isEmpty()) {
+                throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_NOT_FOUND", "Attendance not found");
+            }
+
+            Attendance attendance = optionalAttendance.get();
+            attendance.setCheckOut(LocalTime.now());
+            attendanceRepository.save(attendance);
+
+            return new ApplicationResponseDTO(HttpStatus.OK, "ATTENDANCE_CHECKED_OUT", "Attendance checked out");
+        }
+        throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "INVALID_ATTENDANCE", "Invalid Attendance");
+    }
+
+
+    //admin
     public List<Attendance> getAllAttendances() {
-        String username = AuthService.getCurrentUser();
-        User user = userService.findByUsername(username);
+        return attendanceRepository.findAll();
+    }
+    public Attendance getAttendanceById(Long id) {
+        return attendanceRepository.findById(id).orElseThrow(() -> new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_NOT_FOUND", "Attendance not found"));
+    }
+    public List<Attendance> getAttendanceByUserId(Long userId) {
+        return attendanceRepository.findAllByEmployeeId(userId);
+    }
+    public List<Attendance> getAttendanceByDate(LocalDate date) {
+        return attendanceRepository.findAlByDate(date);
+    }
+    public Attendance getAttendanceUserIdAndByDate(Long userId, LocalDate date) {
+        return attendanceRepository.findByEmployeeIdAndDate(userId,date);
+    }
+
+
+    //user
+    public List<Attendance> getOwnAttendances() {
+        User user = userService.findByUsername(userService.getCurrentUser().getUsername());
         return attendanceRepository.findAllByEmployeeId(user.getId());
     }
 
-    public Attendance getAttendance(Long id) {
-        String username = AuthService.getCurrentUser();
-        User user = userService.findByUsername(username);
+
+    public Attendance getOwnAttendanceById(Long id) {
+        User user = userService.findByUsername(userService.getCurrentUser().getUsername());
         Optional<Attendance> optionalAttendance = attendanceRepository.findById(id);
-        if (optionalAttendance.isEmpty()){
-            throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_NOT_FOUND", "Attendance not found");
-        }
-        Attendance attendance = optionalAttendance.get();
-        if (!attendance.getEmployeeId().equals(user.getId())){
-            throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "INVALID_ATTENDANCE", "Invalid attendance");
-        }
-        return attendance;
+
+        return getAttendance(user, optionalAttendance);
     }
-    public Attendance getAttendance(LocalDate date) {
-        String username = AuthService.getCurrentUser();
-        User user = userService.findByUsername(username);
+
+    public Attendance getOwnAttendanceByDate(LocalDate date) {
+        User user = userService.findByUsername(userService.getCurrentUser().getUsername());
         Optional<Attendance> optionalAttendance = attendanceRepository.findByDate(date);
-        if (optionalAttendance.isEmpty()){
+        return getAttendance(user, optionalAttendance);
+    }
+    private Attendance getAttendance(User user, Optional<Attendance> optionalAttendance) {
+        if (optionalAttendance.isEmpty()) {
             throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_NOT_FOUND", "Attendance not found");
         }
         Attendance attendance = optionalAttendance.get();
-        if (!attendance.getEmployeeId().equals(user.getId())){
+        if (!attendance.getEmployeeId().equals(user.getId())) {
             throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "INVALID_ATTENDANCE", "Invalid attendance");
         }
         return attendance;
     }
 
-    public ApplicationResponseDTO checkOutAttendance(Long id) {
-        if (attendanceRepository.findByDate(LocalDate.now()).isEmpty()){
-            throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_NOT_ADDED", "Attendance not added");
-        }
 
-        Attendance attendance = attendanceRepository.findById(id).orElseThrow(()-> new
-                ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_NOT_FOUND", "Attendance not found")
-        );
-        if (attendance.getCheckOut() != null){
-            throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ATTENDANCE_CHECK_OUT", "Attendance check out");
-        }
 
-        attendance.setCheckOut(LocalTime.now());
-        attendanceRepository.save(attendance);
-
-        return new ApplicationResponseDTO(HttpStatus.CREATED, "ATTENDANCE_MARKED_SUCCESSFULLY", "Attendance marked successfully");
-    }
 }

@@ -1,6 +1,6 @@
-package com.xrontech.web.domain.job;
+package com.xrontech.web.domain.document;
 
-import jakarta.validation.constraints.Min;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -10,14 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class JobRoleDTO {
+public class DocumentDTO {
+
     @NotBlank
     private String title;
 
-    @NotNull
-    @Min(0)
-    private Double salary;
+    private DocumentType type;
 
     @NotNull
-    private Long departmentId;
+    private Long employeeId;
 }

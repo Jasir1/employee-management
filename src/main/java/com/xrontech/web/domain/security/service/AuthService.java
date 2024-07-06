@@ -1,7 +1,5 @@
 package com.xrontech.web.domain.security.service;
 
-import com.xrontech.web.EmployeeManagementApplication;
-import com.xrontech.web.domain.security.domain.UserData;
 import com.xrontech.web.domain.security.dto.AuthResponseDTO;
 import com.xrontech.web.domain.security.dto.LogInDTO;
 import com.xrontech.web.domain.security.dto.ResetForgotPasswordDTO;
@@ -16,8 +14,6 @@ import com.xrontech.web.mail.MailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -50,27 +46,8 @@ public class AuthService {
         }
     }
 
-    public static String getCurrentUser() {
-        try {
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            if (securityContext != null && securityContext.getAuthentication() != null) {
-                Object principal = securityContext.getAuthentication().getPrincipal();
-                if (principal instanceof UserData userData) {
-                    return userData.getUsername();
-                } else {
-                    throw new ApplicationCustomException(HttpStatus.UNAUTHORIZED, "INVALID_PRINCIPAL", "Invalid Principal");
-                }
-            } else {
-                throw new ApplicationCustomException(HttpStatus.UNAUTHORIZED, "SECURITY_CONTEXT_IS_NULL", "Security Context is Null");
-            }
-        } catch (Exception e) {
-            throw new ApplicationCustomException(HttpStatus.UNAUTHORIZED, "INVALID_USER", e.getMessage());
-        }
-    }
-
     public ApplicationResponseDTO resetPassword(ResetPasswordDTO resetPasswordDTO) {
-        String username = AuthService.getCurrentUser();
-        User user = userService.findByUsername(username);
+        User user = userService.getCurrentUser();
         if (!passwordEncoder.matches(resetPasswordDTO.getOldPassword(), user.getPassword())) {
             throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "INVALID_OLD_PASSWORD", "Invalid Old Password");
         } else if (!(resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getConfirmPassword()))) {
@@ -109,11 +86,11 @@ public class AuthService {
     }
 
     public void checkAccountStatus(User user){
-        if (user.getDelete()){
+        if (user.isDelete()){
             throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ACCOUNT_DELETED", "Account Deleted");
         }
 
-        if (!user.getStatus()){
+        if (!user.isActive()){
             throw new ApplicationCustomException(HttpStatus.BAD_REQUEST, "ACCOUNT_DISABLED", "Account Disabled");
         }
     }
@@ -125,6 +102,7 @@ public class AuthService {
         checkAccountStatus(user);
         return new ApplicationResponseDTO(HttpStatus.OK, "VALID_RESET_PASSWORD_LINK", "Valid Reset Password Link!");
     }
+
     public ApplicationResponseDTO resetForgotPassword(Long id, ResetForgotPasswordDTO resetForgotPasswordDTO) {
         User user = userRepository.findById(id).orElseThrow(() ->
                 new ApplicationCustomException(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND", "User not found")

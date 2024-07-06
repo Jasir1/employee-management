@@ -9,6 +9,11 @@ import com.xrontech.web.domain.security.entity.UserRole;
 import com.xrontech.web.domain.security.repos.UserRepository;
 import com.xrontech.web.domain.security.service.AuthService;
 import com.xrontech.web.exception.ApplicationCustomException;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.SpringApplication;
@@ -18,6 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @RequiredArgsConstructor
 @SpringBootApplication
+@OpenAPIDefinition(info = @Info(title = "Employees API", version = "2.0", description = "Employees Information"))
+@SecurityScheme(name = "ems", scheme = "bearer", type = SecuritySchemeType.HTTP, in = SecuritySchemeIn.HEADER)
 public class EmployeeManagementApplication {
 
     private final UserRepository userRepository;
@@ -52,7 +59,7 @@ public class EmployeeManagementApplication {
                             .username("mhdjasir4565@gmail.com")
                             .mobile("0762684595")
                             .password(passwordEncoder.encode("1234"))
-                            .status(true)
+                            .active(true)
                             .delete(false)
                             .userRole(UserRole.ADMIN)
                             .jobId(jobRole.getId())
@@ -67,7 +74,7 @@ public class EmployeeManagementApplication {
                             .username("mhdjasir3454@gmail.com")
                             .mobile("0762684596")
                             .password(passwordEncoder.encode("1234"))
-                            .status(true)
+                            .active(true)
                             .delete(false)
                             .userRole(UserRole.USER)
                             .jobId(jobRole.getId())
